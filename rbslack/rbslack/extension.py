@@ -109,7 +109,8 @@ class SlackExtension(Extension):
 
         return self.format_link(
             user_url,
-            user.get_full_name() or user.username)
+            '@' + user.username)
+            #user.get_full_name() or user.username)
 
     def get_review_request_text_link(self, review_request):
         """Get the Slack-formatted link to a review request."""
@@ -164,6 +165,14 @@ class SlackExtension(Extension):
         """Handler for the review_request_published signal."""
         review_request_link = self.get_review_request_text_link(review_request)
         user_link = self.get_user_text_link(user, review_request.local_site)
+
+        user_links = '   '
+        for target_person in review_request.target_people.all():
+            user_links += self.get_user_text_link(target_person, review_request.local_site)
+            #user_links += ' ' + self.format_link('https://moonfrog.slack.com/team/' + target_person.username, '( @' + target_person.username + ' )')
+            user_links += ', '
+        user_links = user_links[:-2]
+
         fields = [
             {
                 'title': 'Review Request Published',
@@ -173,6 +182,11 @@ class SlackExtension(Extension):
             {
                 'title': 'By',
                 'value': user_link,
+                'short': True,
+            },
+            {
+                'title': 'For',
+                'value': user_links,
                 'short': True,
             },
         ]
